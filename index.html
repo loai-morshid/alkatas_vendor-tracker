@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wastewater Treatment Plant - Vendor Management Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .btn-download {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        }
+        
+        .btn-download:hover {
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .filter-group select {
+            padding: 8px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            max-height: 70vh;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #495057 0%, #6c757d 100%);
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-right: 1px solid #dee2e6;
+        }
+        
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #dee2e6;
+            border-right: 1px solid #dee2e6;
+            vertical-align: top;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        tr:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .status-active { background-color: #d4edda; color: #155724; }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-overdue { background-color: #f8d7da; color: #721c24; }
+        .status-complete { background-color: #d1ecf1; color: #0c5460; }
+        
+        .priority-high { background-color: #f8d7da; color: #721c24; font-weight: bold; }
+        .priority-medium { background-color: #fff3cd; color: #856404; }
+        .priority-low { background-color: #d4edda; color: #155724; }
+        
+        input[type="text"], input[type="date"], input[type="email"], input[type="tel"], select, textarea {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+        
+        .editable {
+            background-color: #ffffff;
+            min-width: 120px;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px 30px;
+            background: #f8f9fa;
+        }
+        
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .summary-card h3 {
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        
+        .summary-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .vendor-type {
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .type-equipment { background-color: #e3f2fd; color: #1565c0; }
+        .type-contractor { background-color: #f3e5f5; color: #7b1fa2; }
+        .type-supplier { background-color: #e8f5e8; color: #2e7d32; }
+        .type-service { background-color: #fff3e0; color: #f57c00; }
+        .type-inspection { background-color: #fce4ec; color: #c2185b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏭 Wastewater Treatment Plant</h1>
+            <p>Vendor Management & Construction Tracking System</p>
+        </div>
+        
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h3>Total Vendors</h3>
+                <div class="number" id="totalVendors">12</div>
+            </div>
+            <div class="summary-card">
+                <h3>Active Contracts</h3>
+                <div class="number" id="activeContracts">8</div>
+            </div>
+            <div class="summary-card">
+                <h3>Pending Quotes</h3>
+                <div class="number" id="pendingQuotes">4</div>
+            </div>
+            <div class="summary-card">
+                <h3>Overdue Items</h3>
+                <div class="number" id="overdueItems">2</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="addVendor()">+ Add New Vendor</button>
+            <button class="btn btn-download" onclick="downloadExcel()">📊 Download Excel</button>
+            
+            <div class="filter-group">
+                <label>Filter by Status:</label>
+                <select id="statusFilter" onchange="filterTable()">
+                    <option value="">All Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Complete">Complete</option>
+                    <option value="Overdue">Overdue</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Filter by Type:</label>
+                <select id="typeFilter" onchange="filterTable()">
+                    <option value="">All Types</option>
+                    <option value="Equipment Supplier">Equipment Supplier</option>
+                    <option value="General Contractor">General Contractor</option>
+                    <option value="Specialty Contractor">Specialty Contractor</option>
+                    <option value="Material Supplier">Material Supplier</option>
+                    <option value="Inspection Service">Inspection Service</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table id="vendorTable">
+                <thead>
+                    <tr>
+                        <th>Vendor Name</th>
+                        <th>Type</th>
+                        <th>Contact Person</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>First Contact</th>
+                        <th>Specs Sent</th>
+                        <th>Quote Status</th>
+                        <th>Quote Amount</th>
+                        <th>Meeting Date</th>
+                        <th>Contract Status</th>
+                        <th>Delivery Date</th>
+                        <th>Priority</th>
+                        <th>Insurance Status</th>
+                        <th>Permits Required</th>
+                        <th>Notes</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody id="vendorTableBody">
+                    <!-- Sample data will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Sample vendor data
+        const sampleVendors = [
+            {
+                vendorName: "AquaTech Systems",
+                type: "Equipment Supplier",
+                contactPerson: "John Smith",
+                phone: "555-0123",
+                email: "j.smith@aquatech.com",
+                firstContact: "2025-06-01",
+                specsSent: "2025-06-03",
+                quoteStatus: "Received",
+                quoteAmount: "$125,000",
+                meetingDate: "2025-06-30",
+                contractStatus: "Active",
+                deliveryDate: "2025-08-15",
+                priority: "High",
+                insuranceStatus: "Verified",
+                permitsRequired: "Yes - Equipment Installation",
+                notes: "Primary pump supplier, 2-year warranty included",
+                lastUpdated: "2025-06-27"
+            },
+            {
+                vendorName: "BuildPro Construction",
+                type: "General Contractor",
+                contactPerson: "Sarah Johnson",
+                phone: "555-0456",
+                email: "sarah@buildpro.com",
+                firstContact: "2025-05-15",
+                specsSent: "2025-05-18",
+                quoteStatus: "Pending",
+                quoteAmount: "TBD",
+                meetingDate: "2025-07-02",
+                contractStatus: "Negotiating",
+                deliveryDate: "2025-09-30",
+                priority: "High",
+                insuranceStatus: "Pending",
+                permitsRequired: "Yes - Building Permits",
+                notes: "Main construction contractor, needs updated insurance docs",
+                lastUpdated: "2025-06-26"
+            },
+            {
+                vendorName: "ElectroMax Services",
+                type: "Specialty Contractor",
+                contactPerson: "Mike Chen",
+                phone: "555-0789",
+                email: "mike@electromax.com",
+                firstContact: "2025-06-10",
+                specsSent: "2025-06-12",
+                quoteStatus: "Received",
+                quoteAmount: "$85,000",
+                meetingDate: "",
+                contractStatus: "Quote Review",
+                deliveryDate: "2025-07-20",
+                priority: "Medium",
+                insuranceStatus: "Verified",
+                permitsRequired: "Yes - Electrical",
+                notes: "Electrical installation and control systems",
+                lastUpdated: "2025-06-25"
+            },
+            {
+                vendorName: "Quality Testing Labs",
+                type: "Inspection Service",
+                contactPerson: "Dr. Lisa Wong",
+                phone: "555-0321",
+                email: "lisa@qualitytest.com",
+                firstContact: "2025-06-20",
+                specsSent: "2025-06-22",
+                quoteStatus: "Pending",
+                quoteAmount: "TBD",
+                meetingDate: "2025-06-28",
+                contractStatus: "Initial Contact",
+                deliveryDate: "Ongoing",
+                priority: "Medium",
+                insuranceStatus: "Verified",
+                permitsRequired: "No",
+                notes: "Water quality testing and environmental compliance",
+                lastUpdated: "2025-06-27"
+            }
+        ];
+
+        let vendors = [...sampleVendors];
+
+        function populateTable() {
+            const tbody = document.getElementById('vendorTableBody');
+            tbody.innerHTML = '';
+            
+            vendors.forEach((vendor, index) => {
+                const row = createVendorRow(vendor, index);
+                tbody.appendChild(row);
+            });
+            
+            updateSummaryCards();
+        }
+
+        function createVendorRow(vendor, index) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" value="${vendor.vendorName}" onchange="updateVendor(${index}, 'vendorName', this.value)" class="editable"></td>
+                <td>
+                    <select onchange="updateVendor(${index}, 'type', this.value)" class="editable">
+                        <option value="Equipment Supplier" ${vendor.type === 'Equipment Supplier' ? 'selected' : ''}>Equipment Supplier</option>
+                        <option value="General Contractor" ${vendor.type === 'General Contractor' ? 'selected' : ''}>General Contractor</option>
+                        <option value="Specialty Contractor" ${vendor.type === 'Specialty Contractor' ? 'selected' : ''}>Specialty Contractor</option>
+                        <option value="Material Supplier" ${vendor.type === 'Material Supplier' ? 'selected' : ''}>Material Supplier</option>
+                        <option value="Inspection Service" ${vendor.type === 'Inspection Service' ? 'selected' : ''}>Inspection Service</option>
+                    </select>
+                </td>
+                <td><input type="text" value="${vendor.contactPerson}" onchange="updateVendor(${index}, 'contactPerson', this.value)" class="editable"></td>
+                <td><input type="tel" value="${vendor.phone}" onchange="updateVendor(${index}, 'phone', this.value)" class="editable"></td>
+                <td><input type="email" value="${vendor.email}" onchange="updateVendor(${index}, 'email', this.value)" class="editable"></td>
+                <td><input type="date" value="${vendor.firstContact}" onchange="updateVendor(${index}, 'firstContact', this.value)" class="editable"></td>
+                <td><input type="date" value="${vendor.specsSent}" onchange="updateVendor(${index}, 'specsSent', this.value)" class="editable"></td>
+                <td>
+                    <select onchange="updateVendor(${index}, 'quoteStatus', this.value)" class="editable">
+                        <option value="Not Requested" ${vendor.quoteStatus === 'Not Requested' ? 'selected' : ''}>Not Requested</option>
+                        <option value="Requested" ${vendor.quoteStatus === 'Requested' ? 'selected' : ''}>Requested</option>
+                        <option value="Pending" ${vendor.quoteStatus === 'Pending' ? 'selected' : ''}>Pending</option>
+                        <option value="Received" ${vendor.quoteStatus === 'Received' ? 'selected' : ''}>Received</option>
+                        <option value="Under Review" ${vendor.quoteStatus === 'Under Review' ? 'selected' : ''}>Under Review</option>
+                    </select>
+                </td>
+                <td><input type="text" value="${vendor.quoteAmount}" onchange="updateVendor(${index}, 'quoteAmount', this.value)" class="editable"></td>
+                <td><input type="date" value="${vendor.meetingDate}" onchange="updateVendor(${index}, 'meetingDate', this.value)" class="editable"></td>
+                <td>
+                    <select onchange="updateVendor(${index}, 'contractStatus', this.value)" class="editable">
+                        <option value="Initial Contact" ${vendor.contractStatus === 'Initial Contact' ? 'selected' : ''}>Initial Contact</option>
+                        <option value="Quote Review" ${vendor.contractStatus === 'Quote Review' ? 'selected' : ''}>Quote Review</option>
+                        <option value="Negotiating" ${vendor.contractStatus === 'Negotiating' ? 'selected' : ''}>Negotiating</option>
+                        <option value="Active" ${vendor.contractStatus === 'Active' ? 'selected' : ''}>Active</option>
+                        <option value="Complete" ${vendor.contractStatus === 'Complete' ? 'selected' : ''}>Complete</option>
+                        <option value="On Hold" ${vendor.contractStatus === 'On Hold' ? 'selected' : ''}>On Hold</option>
+                    </select>
+                </td>
+                <td><input type="date" value="${vendor.deliveryDate}" onchange="updateVendor(${index}, 'deliveryDate', this.value)" class="editable"></td>
+                <td>
+                    <select onchange="updateVendor(${index}, 'priority', this.value)" class="editable">
+                        <option value="High" ${vendor.priority === 'High' ? 'selected' : ''}>High</option>
+                        <option value="Medium" ${vendor.priority === 'Medium' ? 'selected' : ''}>Medium</option>
+                        <option value="Low" ${vendor.priority === 'Low' ? 'selected' : ''}>Low</option>
+                    </select>
+                </td>
+                <td>
+                    <select onchange="updateVendor(${index}, 'insuranceStatus', this.value)" class="editable">
+                        <option value="Not Required" ${vendor.insuranceStatus === 'Not Required' ? 'selected' : ''}>Not Required</option>
+                        <option value="Requested" ${vendor.insuranceStatus === 'Requested' ? 'selected' : ''}>Requested</option>
+                        <option value="Pending" ${vendor.insuranceStatus === 'Pending' ? 'selected' : ''}>Pending</option>
+                        <option value="Verified" ${vendor.insuranceStatus === 'Verified' ? 'selected' : ''}>Verified</option>
+                        <option value="Expired" ${vendor.insuranceStatus === 'Expired' ? 'selected' : ''}>Expired</option>
+                    </select>
+                </td>
+                <td><input type="text" value="${vendor.permitsRequired}" onchange="updateVendor(${index}, 'permitsRequired', this.value)" class="editable"></td>
+                <td><textarea onchange="updateVendor(${index}, 'notes', this.value)" class="editable">${vendor.notes}</textarea></td>
+                <td><input type="date" value="${vendor.lastUpdated}" onchange="updateVendor(${index}, 'lastUpdated', this.value)" class="editable"></td>
+            `;
+            return row;
+        }
+
+        function updateVendor(index, field, value) {
+            vendors[index][field] = value;
+            updateSummaryCards();
+        }
+
+        function addVendor() {
+            const newVendor = {
+                vendorName: "New Vendor",
+                type: "Equipment Supplier",
+                contactPerson: "",
+                phone: "",
+                email: "",
+                firstContact: "",
+                specsSent: "",
+                quoteStatus: "Not Requested",
+                quoteAmount: "",
+                meetingDate: "",
+                contractStatus: "Initial Contact",
+                deliveryDate: "",
+                priority: "Medium",
+                insuranceStatus: "Not Required",
+                permitsRequired: "",
+                notes: "",
+                lastUpdated: new Date().toISOString().split('T')[0]
+            };
+            
+            vendors.push(newVendor);
+            populateTable();
+        }
+
+        function updateSummaryCards() {
+            document.getElementById('totalVendors').textContent = vendors.length;
+            document.getElementById('activeContracts').textContent = vendors.filter(v => v.contractStatus === 'Active').length;
+            document.getElementById('pendingQuotes').textContent = vendors.filter(v => v.quoteStatus === 'Pending' || v.quoteStatus === 'Requested').length;
+            document.getElementById('overdueItems').textContent = vendors.filter(v => {
+                const today = new Date();
+                const deliveryDate = new Date(v.deliveryDate);
+                return deliveryDate < today && v.contractStatus !== 'Complete';
+            }).length;
+        }
+
+        function filterTable() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const rows = document.querySelectorAll('#vendorTableBody tr');
+            
+            rows.forEach(row => {
+                const status = row.cells[10].querySelector('select').value;
+                const type = row.cells[1].querySelector('select').value;
+                
+                const statusMatch = !statusFilter || status === statusFilter;
+                const typeMatch = !typeFilter || type === typeFilter;
+                
+                row.style.display = statusMatch && typeMatch ? '' : 'none';
+            });
+        }
+
+        function downloadExcel() {
+            // Create CSV content
+            const headers = [
+                'Vendor Name', 'Type', 'Contact Person', 'Phone', 'Email', 
+                'First Contact', 'Specs Sent', 'Quote Status', 'Quote Amount', 
+                'Meeting Date', 'Contract Status', 'Delivery Date', 'Priority', 
+                'Insurance Status', 'Permits Required', 'Notes', 'Last Updated'
+            ];
+            
+            let csvContent = headers.join(',') + '\n';
+            
+            vendors.forEach(vendor => {
+                const row = [
+                    vendor.vendorName, vendor.type, vendor.contactPerson, vendor.phone, vendor.email,
+                    vendor.firstContact, vendor.specsSent, vendor.quoteStatus, vendor.quoteAmount,
+                    vendor.meetingDate, vendor.contractStatus, vendor.deliveryDate, vendor.priority,
+                    vendor.insuranceStatus, vendor.permitsRequired, vendor.notes, vendor.lastUpdated
+                ].map(field => `"${field}"`).join(',');
+                csvContent += row + '\n';
+            });
+            
+            // Download file
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'wastewater_vendor_tracker.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Initialize the table
+        populateTable();
+    </script>
+</body>
+</html>
